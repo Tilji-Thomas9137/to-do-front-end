@@ -81,20 +81,52 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     background: #ffffff;
-    border-radius: 8px;
+    border-radius: 12px;
     border-left: 6px solid #007bff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
 }
 
 .task-item:hover {
     transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.task-content {
+    flex: 1;
+    padding-right: 20px;
+}
+
+.task-content h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.task-content p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.time-remaining {
+    font-size: 0.85rem;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+    position: absolute;
+    top: 10px;
+    right: 10px;
 }
 
 .priority-badge {
-    padding: 5px 10px;
+    padding: 5px 12px;
     border-radius: 6px;
     font-size: 0.85rem;
     font-weight: 600;
@@ -104,16 +136,19 @@ body {
 .priority-badge.low {
     background-color: #d4edda;
     color: #155724;
+    border-left: 6px solid #28a745;
 }
 
 .priority-badge.medium {
     background-color: #fff3cd;
     color: #856404;
+    border-left: 6px solid #ffc107;
 }
 
 .priority-badge.high {
     background-color: #f8d7da;
     color: #721c24;
+    border-left: 6px solid #dc3545;
 }
 
 .task-actions button {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../css/styles.css';
-import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaSave, FaTimes } from 'react-icons/fa';
 
 function ToDo() {
   const [tasks, setTasks] = useState([]);
@@ -12,15 +12,6 @@ function ToDo() {
   useEffect(() => {
     fetchTasks();
   }, []);
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!newTask.title.trim()) newErrors.title = 'Title is required';
-    if (!newTask.description.trim()) newErrors.description = 'Description is required';
-    if (!newTask.dueDate) newErrors.dueDate = 'Due date is required';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const fetchTasks = async () => {
     try {
@@ -34,29 +25,30 @@ function ToDo() {
   };
 
   const handleAddTask = async () => {
-    if (!validateForm()) return alert('Please fill all fields before submitting.');
+    if (!newTask.title || !newTask.description || !newTask.dueDate) {
+      alert('Please fill in all fields');
+      return;
+    }
     try {
       const response = await fetch('https://to-do-backend-eej5.onrender.com/api/todos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTask),
       });
-      if (!response.ok) throw new Error(`Error: ${response.status}`);
-      const createdTask = await response.json();
-      setTasks([...tasks, createdTask]);
+      if (!response.ok) throw new Error('Failed to add task');
+      fetchTasks();
       setNewTask({ title: '', description: '', dueDate: '', priority: 'medium' });
-      setErrors({});
     } catch (error) {
-      console.error('Failed to add task:', error);
+      console.error(error);
     }
   };
 
   const handleDeleteTask = async (taskId) => {
     try {
       await fetch(`https://to-do-backend-eej5.onrender.com/api/todos/${taskId}`, { method: 'DELETE' });
-      setTasks(tasks.filter(task => task._id !== taskId));
+      fetchTasks();
     } catch (error) {
-      console.error('Error deleting task:', error);
+      console.error(error);
     }
   };
 
@@ -67,28 +59,25 @@ function ToDo() {
 
   const saveEditedTask = async () => {
     try {
-      const response = await fetch(`https://to-do-backend-eej5.onrender.com/api/todos/${editingTaskId}`, {
+      await fetch(`https://to-do-backend-eej5.onrender.com/api/todos/${editingTaskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editedTask),
       });
-      if (!response.ok) throw new Error(`Error: ${response.status}`);
-      const updatedTask = await response.json();
-      setTasks(tasks.map(task => (task._id === editingTaskId ? updatedTask : task)));
+      fetchTasks();
       setEditingTaskId(null);
-      setEditedTask({ title: '', description: '', dueDate: '', priority: 'medium' });
     } catch (error) {
-      console.error('Error editing task:', error);
+      console.error(error);
     }
   };
 
   const calculateTimeRemaining = (dueDate) => {
     const now = new Date();
     const due = new Date(dueDate);
-    const diff = due - now;
-    if (diff <= 0) return 'Overdue';
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const diffMs = due - now;
+    if (diffMs <= 0) return 'Time expired';
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h ${minutes}m remaining`;
   };
 
@@ -98,29 +87,41 @@ function ToDo() {
         <h1>My To-Do List</h1>
       </header>
       <div className="input-group">
-        <input type="text" placeholder="Task title" value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} className={`task-input ${errors.title ? 'error' : ''}`} />
-        <input type="text" placeholder="Description" value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} className={`task-input ${errors.description ? 'error' : ''}`} />
-        <input type="datetime-local" value={newTask.dueDate} onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })} className={`task-input ${errors.dueDate ? 'error' : ''}`} />
-        <select value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })} className="task-input">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
+        <input type="text" placeholder="Task title" value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} className="task-input" />
+        <input type="text" placeholder="Description" value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} className="task-input" />
+        <input type="datetime-local" value={newTask.dueDate} onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })} className="task-input" />
         <button onClick={handleAddTask} className="add-btn"><FaPlus /> Add Task</button>
       </div>
       <ul className="task-list">
         {tasks.map(task => (
           <li key={task._id} className="task-item">
-            <div className="task-content">
-              <h3>{task.title}</h3>
-              <p>{task.description}</p>
-              <small>Due: {new Date(task.dueDate).toLocaleString()}</small>
-              <p className="time-remaining">{calculateTimeRemaining(task.dueDate)}</p>
-              <span className={`priority-badge ${task.priority}`}>{task.priority}</span>
-            </div>
+            {editingTaskId === task._id ? (
+              <div className="edit-modal">
+                <h3>Edit Task</h3>
+                <input type="text" value={editedTask.title} onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })} />
+                <input type="text" value={editedTask.description} onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })} />
+                <input type="datetime-local" value={editedTask.dueDate} onChange={(e) => setEditedTask({ ...editedTask, dueDate: e.target.value })} />
+                <p>{calculateTimeRemaining(editedTask.dueDate)}</p>
+                <div className="modal-actions">
+                  <button className="save-btn" onClick={saveEditedTask}><FaSave /> Save</button>
+                  <button className="cancel-btn" onClick={() => setEditingTaskId(null)}><FaTimes /> Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div className="task-content">
+                <h3>{task.title}</h3>
+                <p>{task.description}</p>
+                <small>Due: {new Date(task.dueDate).toLocaleString()}</small>
+                <p>{calculateTimeRemaining(task.dueDate)}</p>
+              </div>
+            )}
             <div className="task-actions">
-              <button className="edit-btn" onClick={() => handleEditTask(task)}><FaEdit /> Edit</button>
-              <button className="delete-btn" onClick={() => handleDeleteTask(task._id)}><FaTrash /> Delete</button>
+              {editingTaskId === task._id ? null : (
+                <>
+                  <button className="edit-btn" onClick={() => handleEditTask(task)}><FaEdit /> Edit</button>
+                  <button className="delete-btn" onClick={() => handleDeleteTask(task._id)}><FaTrash /> Delete</button>
+                </>
+              )}
             </div>
           </li>
         ))}
