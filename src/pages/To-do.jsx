@@ -24,7 +24,7 @@ function ToDo() {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/todos');
+      const response = await fetch('https://to-do-backend-eej5.onrender.com/api/todos');
       if (!response.ok) throw new Error('Failed to fetch tasks');
       const data = await response.json();
       setTasks(data);
@@ -36,7 +36,7 @@ function ToDo() {
   const handleAddTask = async () => {
     if (!validateForm()) return alert('Please fill all fields before submitting.');
     try {
-      const response = await fetch('http://localhost:5001/api/todos', {
+      const response = await fetch('https://to-do-backend-eej5.onrender.com/api/todos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTask),
@@ -53,7 +53,7 @@ function ToDo() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      await fetch(`http://localhost:5001/api/todos/${taskId}`, { method: 'DELETE' });
+      await fetch(`https://to-do-backend-eej5.onrender.com/api/todos/${taskId}`, { method: 'DELETE' });
       setTasks(tasks.filter(task => task._id !== taskId));
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -67,7 +67,7 @@ function ToDo() {
 
   const saveEditedTask = async () => {
     try {
-      const response = await fetch(`http://localhost:5001/api/todos/${editingTaskId}`, {
+      const response = await fetch(`https://to-do-backend-eej5.onrender.com/api/todos/${editingTaskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editedTask),
