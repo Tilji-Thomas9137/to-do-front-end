@@ -5,7 +5,6 @@ import { FaEdit, FaTrash, FaPlus, FaSave, FaTimes } from 'react-icons/fa';
 function ToDo() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState({ title: '', description: '', dueDate: '', priority: 'medium' });
-  const [errors, setErrors] = useState({});
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editedTask, setEditedTask] = useState({ title: '', description: '', dueDate: '', priority: 'medium' });
 
@@ -81,6 +80,11 @@ function ToDo() {
     return `${hours}h ${minutes}m remaining`;
   };
 
+  const formatDateForInput = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toISOString().slice(0, 16); // Ensures consistency in handling date and time
+  };
+
   return (
     <div className="todo-container">
       <header className="header">
@@ -98,9 +102,14 @@ function ToDo() {
             {editingTaskId === task._id ? (
               <div className="edit-modal">
                 <h3>Edit Task</h3>
-                <input type="text" value={editedTask.title} onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })} />
-                <input type="text" value={editedTask.description} onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })} />
-                <input type="datetime-local" value={editedTask.dueDate} onChange={(e) => setEditedTask({ ...editedTask, dueDate: e.target.value })} />
+                <input type="text" value={editedTask.title} onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })} className="modal-input" />
+                <input type="text" value={editedTask.description} onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })} className="modal-input" />
+                <input
+                  type="datetime-local"
+                  value={formatDateForInput(editedTask.dueDate)}
+                  onChange={(e) => setEditedTask({ ...editedTask, dueDate: e.target.value })}
+                  className="modal-input"
+                />
                 <p>{calculateTimeRemaining(editedTask.dueDate)}</p>
                 <div className="modal-actions">
                   <button className="save-btn" onClick={saveEditedTask}><FaSave /> Save</button>
