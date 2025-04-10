@@ -28,11 +28,14 @@ function ToDo() {
       alert('Please fill in all fields');
       return;
     }
+    const utcDueDate = new Date(newTask.dueDate).toISOString(); // Convert local time to UTC
+    const taskWithUtc = { ...newTask, dueDate: utcDueDate };
+
     try {
       const response = await fetch('https://to-do-backend-eej5.onrender.com/api/todos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask),
+        body: JSON.stringify(taskWithUtc),
       });
       if (!response.ok) throw new Error('Failed to add task');
       fetchTasks();
@@ -57,11 +60,14 @@ function ToDo() {
   };
 
   const saveEditedTask = async () => {
+    const utcDueDate = new Date(editedTask.dueDate).toISOString(); // Convert local time to UTC
+    const taskWithUtc = { ...editedTask, dueDate: utcDueDate };
+
     try {
       await fetch(`https://to-do-backend-eej5.onrender.com/api/todos/${editingTaskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedTask),
+        body: JSON.stringify(taskWithUtc),
       });
       fetchTasks();
       setEditingTaskId(null);
@@ -81,8 +87,13 @@ function ToDo() {
   };
 
   const formatDateForInput = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toISOString().slice(0, 16); // Ensures consistency in handling date and time
+    const utcDate = new Date(dateStr); // Parse UTC date string
+    const year = utcDate.getFullYear();
+    const month = String(utcDate.getMonth() + 1).padStart(2, '0');
+    const day = String(utcDate.getDate()).padStart(2, '0');
+    const hours = String(utcDate.getHours()).padStart(2, '0');
+    const minutes = String(utcDate.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`; // Format for datetime-local
   };
 
   return (
